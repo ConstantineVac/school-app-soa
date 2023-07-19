@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TeacherServiceTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TeacherServiceTest Coverage Results</a> &gt; <a href="index.source.html" class="el_package">gr.aueb.cf.schoolapp.service</a> &gt; <span class="el_source">TeacherServiceTest.java</span></div><h1>TeacherServiceTest.java</h1><pre class="source lang-java linenums">package gr.aueb.cf.schoolapp.service;
+
+import gr.aueb.cf.schoolapp.dao.ITeacherDAO;
+import gr.aueb.cf.schoolapp.dao.TeacherDAOImpl;
+import gr.aueb.cf.schoolapp.dao.dbutil.DBHelper;
+import gr.aueb.cf.schoolapp.dao.exceptions.TeacherDAOException;
+import gr.aueb.cf.schoolapp.dto.TeacherInsertDTO;
+import gr.aueb.cf.schoolapp.dto.TeacherUpdateDTO;
+import gr.aueb.cf.schoolapp.model.Teacher;
+import gr.aueb.cf.schoolapp.service.exceptions.TeacherNotFoundException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.sql.SQLException;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+<span class="fc" id="L21">class TeacherServiceTest {</span>
+<span class="fc" id="L22">        private static ITeacherDAO teacherDAO = new TeacherDAOImpl();</span>
+        private static ITeacherService teacherService;
+
+
+        @BeforeAll
+        public static void setupClass() {
+<span class="fc" id="L28">            teacherService = new TeacherServiceImpl(teacherDAO);</span>
+<span class="fc" id="L29">        }</span>
+
+        @BeforeEach
+        public void setup() throws TeacherDAOException {
+<span class="fc" id="L33">            createDummyTeachers();</span>
+<span class="fc" id="L34">        }</span>
+
+        @AfterEach
+        public void tearDown() throws SQLException {
+<span class="fc" id="L38">            DBHelper.eraseData();</span>
+<span class="fc" id="L39">        }</span>
+
+        @Test
+        public void insertAndGetTeacher() throws TeacherDAOException {
+<span class="fc" id="L43">            TeacherInsertDTO dto = new TeacherInsertDTO(&quot;Olga&quot;, &quot;Krug&quot;);</span>
+<span class="fc" id="L44">            teacherService.insertTeacher(dto);</span>
+
+<span class="fc" id="L46">            List&lt;Teacher&gt; teachers = teacherService.getTeachersByLastname(&quot;Krug&quot;);</span>
+<span class="fc" id="L47">            assertEquals(1, teachers.size());</span>
+            // assertEquals(dto.getFirstname(), teachers.get(0).getFirstname());
+<span class="fc" id="L49">        }</span>
+
+        @Test
+        public void updateTeacher() throws TeacherDAOException, TeacherNotFoundException {
+<span class="fc" id="L53">            TeacherUpdateDTO dto = new TeacherUpdateDTO(1, &quot;Andreas&quot;, &quot;Androutsos2&quot;);</span>
+<span class="fc" id="L54">            teacherService.updateTeacher(dto);</span>
+
+<span class="fc" id="L56">            List&lt;Teacher&gt; teachers = teacherService.getTeachersByLastname(&quot;Androu&quot;);</span>
+<span class="fc" id="L57">            assertEquals(dto.getFirstname(), teachers.get(0).getFirstname());</span>
+<span class="fc" id="L58">            assertEquals(dto.getLastname(), teachers.get(0).getLastname());</span>
+<span class="fc" id="L59">        }</span>
+
+
+        @Test
+        public void updateInvalidTeacher() throws TeacherDAOException, TeacherNotFoundException {
+<span class="fc" id="L64">            TeacherUpdateDTO dto = new TeacherUpdateDTO(10, &quot;Andreas&quot;, &quot;Androutsos2&quot;);</span>
+<span class="fc" id="L65">            assertThrows(TeacherNotFoundException.class, ()-&gt; {</span>
+<span class="nc" id="L66">                teacherService.updateTeacher(dto);</span>
+<span class="nc" id="L67">            });</span>
+<span class="fc" id="L68">        }</span>
+
+        @Test
+        public void deleteTeacher() throws  TeacherDAOException, TeacherNotFoundException {
+<span class="fc" id="L72">            int id = 1;</span>
+<span class="fc" id="L73">            teacherService.deleteTeacher(id);</span>
+
+<span class="fc" id="L75">            List&lt;Teacher&gt; teachers = teacherService.getTeachersByLastname(&quot;Androu&quot;);</span>
+<span class="fc" id="L76">            assertEquals(0, teachers.size());</span>
+<span class="fc" id="L77">        }</span>
+
+        @Test
+        public void deleteInvalidTeacher() {
+<span class="fc" id="L81">            int id = 20;</span>
+<span class="pc" id="L82">            assertThrows(TeacherNotFoundException.class, ()-&gt; teacherService.deleteTeacher(id));</span>
+<span class="fc" id="L83">        }</span>
+
+    public static void createDummyTeachers() throws TeacherDAOException {
+<span class="fc" id="L86">        Teacher teacher = new Teacher();</span>
+<span class="fc" id="L87">        teacher.setFirstname(&quot;Athanassios&quot;);</span>
+<span class="fc" id="L88">        teacher.setLastname(&quot;Androutsos&quot;);</span>
+<span class="fc" id="L89">        teacherDAO.insert(teacher);</span>
+
+<span class="fc" id="L91">        teacher = new Teacher();</span>
+<span class="fc" id="L92">        teacher.setFirstname(&quot;Anna&quot;);</span>
+<span class="fc" id="L93">        teacher.setLastname(&quot;Kefala&quot;);</span>
+<span class="fc" id="L94">        teacherDAO.insert(teacher);</span>
+
+<span class="fc" id="L96">        teacher = new Teacher();</span>
+<span class="fc" id="L97">        teacher.setFirstname(&quot;Makis&quot;);</span>
+<span class="fc" id="L98">        teacher.setLastname(&quot;Kapetis&quot;);</span>
+<span class="fc" id="L99">        teacherDAO.insert(teacher);</span>
+
+<span class="fc" id="L101">        teacher = new Teacher();</span>
+<span class="fc" id="L102">        teacher.setFirstname(&quot;John&quot;);</span>
+<span class="fc" id="L103">        teacher.setLastname(&quot;Kapetidis&quot;);</span>
+<span class="fc" id="L104">        teacherDAO.insert(teacher);</span>
+
+<span class="fc" id="L106">        teacher = new Teacher();</span>
+<span class="fc" id="L107">        teacher.setFirstname(&quot;John&quot;);</span>
+<span class="fc" id="L108">        teacher.setLastname(&quot;Papa&quot;);</span>
+<span class="fc" id="L109">        teacherDAO.insert(teacher);</span>
+<span class="fc" id="L110">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
